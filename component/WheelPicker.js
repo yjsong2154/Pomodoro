@@ -1,17 +1,34 @@
 import React from 'react';
-import { View, Text, Button } from 'react-native';
+import { StyleSheet, View, Text, Button, FlatList } from 'react-native';
 
-function WheelPicker(items, selected) {
-	state = {
-		Items: [ 1, 2, 3, 4, 5, 6 ]
-	};
-
+function WheelPicker(props) {
+	const item = props.items;
+	console.log({ item });
 	return (
-		<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-			<Text>Home Screen</Text>
-			<Button title="Go to Details" />
+		<View>
+			<Text>{props.items}</Text>
+			<FlatList keyExtractor={(item) => item.toString()} data={item} renderItem={({ item }) => <Item num={item} />} />
 		</View>
 	);
 }
+
+const Item = ({ num }) => {
+	return (
+		<View style={styles.container}>
+			<Text style={styles.text}>{num}</Text>
+		</View>
+	);
+};
+
+const styles = StyleSheet.create({
+	container: {
+		height: 40
+	},
+	text: {
+		textAlign: 'center',
+		textAlignVertical: 'center',
+		fontSize: 30
+	}
+});
 
 export default WheelPicker;
