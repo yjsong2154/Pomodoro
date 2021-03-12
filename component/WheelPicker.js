@@ -1,13 +1,26 @@
 import React from 'react';
-import { StyleSheet, View, Text, Button, FlatList } from 'react-native';
+import { StyleSheet, View, Text, Button, Dimensions, FlatList } from 'react-native';
+
+const ICON_SIZE = 42;
+const ITEM_HEIGHT = ICON_SIZE * 2;
+const { width, height } = Dimensions.get('window');
 
 function WheelPicker(props) {
 	const item = props.items;
 	console.log({ item });
 	return (
-		<View>
-			<Text>{props.items}</Text>
-			<FlatList keyExtractor={(item) => item.toString()} data={item} renderItem={({ item }) => <Item num={item} />} />
+		<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+			<FlatList
+				showsVerticalScrollIndicator={false}
+				showsHorizontalScrollIndicator={false}
+				contentContainerStyle={{
+					paddingTop: 200,
+					paddingBottom: 200
+				}}
+				keyExtractor={(item) => item.toString()}
+				data={item}
+				renderItem={({ item }) => <Item num={item} />}
+			/>
 		</View>
 	);
 }
