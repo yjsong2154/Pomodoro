@@ -1,6 +1,10 @@
 import React from 'react';
 import { View, Text, FlatList } from 'react-native';
 
+{
+	/* <WheelPicker style={styles.wheel} items={works} onChange={setWork} selected={2} contentStyle={itemStyle} /> */
+}
+
 function WheelPicker(props) {
 	const item = props.items;
 	const contentStyle = props.contentStyle;
@@ -11,6 +15,7 @@ function WheelPicker(props) {
 	return (
 		<View style={[ props.style, { height: ITEM_SIZE * 3 } ]}>
 			<FlatList
+				nestedScrollEnabled={true}
 				showsVerticalScrollIndicator={false}
 				showsHorizontalScrollIndicator={false}
 				snapToInterval={40}
