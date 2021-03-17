@@ -13,6 +13,8 @@ export default function TimerSetup({ navigation }) {
 	const noworks = [ 3, 5, 10, 15, 20 ];
 	const [ nowork, setNowork ] = useState(5);
 
+	const TEXT_WIDTH = width * 0.4;
+
 	// const onPress = React.useCallback(() => {
 	// 	Alert.alert(number + ' ' + work + ' ' + nowork);
 	// });
@@ -24,17 +26,38 @@ export default function TimerSetup({ navigation }) {
 			<View style={styles.pickerScreen}>
 				<Text style={styles.pickerLabel}>집중시간</Text>
 				<Text style={styles.pickerDot}>:</Text>
-				<WheelPicker style={styles.wheel} items={works} onChange={setWork} selected={2} contentStyle={itemStyle} />
+				<WheelPicker
+					style={styles.wheel}
+					items={works}
+					onChange={setWork}
+					selected={2}
+					contentStyle={itemStyle}
+					textWidth={TEXT_WIDTH}
+				/>
 			</View>
 			<View style={styles.pickerScreen}>
 				<Text style={styles.pickerLabel}>쉬는시간</Text>
 				<Text style={styles.pickerDot}>:</Text>
-				<WheelPicker style={styles.wheel} items={noworks} onChange={setNowork} selected={1} contentStyle={itemStyle} />
+				<WheelPicker
+					style={styles.wheel}
+					items={noworks}
+					onChange={setNowork}
+					selected={1}
+					contentStyle={itemStyle}
+					textWidth={TEXT_WIDTH}
+				/>
 			</View>
 			<View style={styles.pickerScreen}>
 				<Text style={styles.pickerLabel}>횟수</Text>
 				<Text style={styles.pickerDot}>:</Text>
-				<WheelPicker style={styles.wheel} items={numbers} onChange={setNumber} selected={0} contentStyle={itemStyle} />
+				<WheelPicker
+					style={styles.wheel}
+					items={numbers}
+					onChange={setNumber}
+					selected={0}
+					contentStyle={itemStyle}
+					textWidth={TEXT_WIDTH}
+				/>
 			</View>
 			<View style={styles.buttonScreen}>
 				<Button
