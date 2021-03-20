@@ -42,8 +42,8 @@ function WheelPicker(props) {
 					<View
 						style={{
 							height: ITEM_SIZE,
-							width: TEXT_WIDTH,
-							backgroundColor: 'gray'
+							width: TEXT_WIDTH
+							// backgroundColor: 'gray'
 						}}
 					>
 						<Text
