@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import TimerSetup from './component/TimerSetup';
 import TimerCycle from './component/TimerCycle';
 import PlanSetup from './component/PlanSetup';
+import MyPage from './component/MyPage';
 
 const TimerStack = createStackNavigator();
 
@@ -32,20 +33,10 @@ const MypageStack = createStackNavigator();
 
 function Mypage() {
 	return (
-		<Text
-			style={{
-				flex: 1,
-				textAlign: 'center',
-				textAlignVertical: 'center',
-				fontSize: 20
-			}}
-		>
-			Mypage
-		</Text>
-		// <MypageStack.Navigator>
-		// 	<MypageStack.Screen name="Home" component={HomeScreen} />
-		// 	<MypageStack.Screen name="Details" component={DetailsScreen} />
-		// </MypageStack.Navigator>
+		<MypageStack.Navigator>
+			<MypageStack.Screen name="MyPage" component={MyPage} />
+			{/* <MypageStack.Screen name="Details" component={DetailsScreen} /> */}
+		</MypageStack.Navigator>
 	);
 }
 
@@ -62,3 +53,5 @@ export default function App() {
 		</NavigationContainer>
 	);
 }
+
+//error code up to : 004

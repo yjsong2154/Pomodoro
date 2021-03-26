@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
 	Dimensions,
 	View,
@@ -12,37 +12,29 @@ import {
 	TouchableOpacity,
 	Alert
 } from 'react-native';
+import { useFocusEffect, useScrollToTop } from '@react-navigation/native';
 import WheelPicker from './WheelPicker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+// @savedPlan, @listDate
 
 const { width, height } = Dimensions.get('window');
 const BACK_COLOR = 'white';
+const numSavedPlan_Key = '@savedPlan';
+let minsMaker = [];
+for (let step = 0; step < 60; step++) {
+	minsMaker.push(step);
+}
 
 export default function PlanSetup({ navigation }) {
-	// useEffect(() => {
+	//scroll to top
+	const ref = useRef(null);
+	useScrollToTop(ref);
+	//scroll to top end
+
 	const nowHourInfull = new Date().getHours();
 	const nowMin = new Date().getMinutes();
 
-	let nowAm = 'AM';
-	let nowHour = 0;
-	if (nowHourInfull === 0 || nowHourInfull === 24) {
-		nowHour = 12;
-	} else if (nowHourInfull === 12) {
-		nowHour = 12;
-		nowAm = 'PM';
-	} else if (nowHourInfull > 12) {
-		nowHour = nowHourInfull - 12;
-		nowAm = 'PM';
-	} else {
-		nowHour = nowHourInfull;
-	}
-
-	let minsMaker = [];
-	for (let step = 0; step < 60; step++) {
-		minsMaker.push(step);
-	}
-	// }, []); // 업데이트를 한번만 할수는 없을까? , []); 가 들어가면 mount에서 한번
-
-	const [ name, setName ] = useState('오늘의 뽀모도로');
+	const [ name, setName ] = useState(null);
 	const isAMs = [ 'AM', 'PM' ];
 	const [ isAM, setIsam ] = useState(nowAm);
 	const hours = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ];
@@ -50,20 +42,14 @@ export default function PlanSetup({ navigation }) {
 	const mins = minsMaker;
 	const [ min, setMin ] = useState(nowMin);
 
-	const [ isMon, setMon ] = useState(false);
-	const onPressMon = () => setMon((previousState) => !previousState);
-	const [ isTue, setTue ] = useState(false);
-	const onPressTue = () => setTue((previousState) => !previousState);
-	const [ isWed, setWed ] = useState(false);
-	const onPressWed = () => setWed((previousState) => !previousState);
-	const [ isThu, setThu ] = useState(false);
-	const onPressThu = () => setThu((previousState) => !previousState);
-	const [ isFri, setFri ] = useState(false);
-	const onPressFri = () => setFri((previousState) => !previousState);
-	const [ isSat, setSat ] = useState(false);
-	const onPressSat = () => setSat((previousState) => !previousState);
-	const [ isSun, setSun ] = useState(false);
-	const onPressSun = () => setSun((previousState) => !previousState);
+	const [ date, setDate ] = useState([ false, false, false, false, false, false, false ]);
+	const onPressMon = () => setDate((date) => [ !date[0], date[1], date[2], date[3], date[4], date[5], date[6] ]);
+	const onPressTue = () => setDate((date) => [ date[0], !date[1], date[2], date[3], date[4], date[5], date[6] ]);
+	const onPressWed = () => setDate((date) => [ date[0], date[1], !date[2], date[3], date[4], date[5], date[6] ]);
+	const onPressThu = () => setDate((date) => [ date[0], date[1], date[2], !date[3], date[4], date[5], date[6] ]);
+	const onPressFri = () => setDate((date) => [ date[0], date[1], date[2], date[3], !date[4], date[5], date[6] ]);
+	const onPressSat = () => setDate((date) => [ date[0], date[1], date[2], date[3], date[4], !date[5], date[6] ]);
+	const onPressSun = () => setDate((date) => [ date[0], date[1], date[2], date[3], date[4], date[5], !date[6] ]);
 
 	const numbers = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ];
 	const [ number, setNumber ] = useState(1);
@@ -80,20 +66,99 @@ export default function PlanSetup({ navigation }) {
 	const TEXT_WIDTH = width * 0.4;
 	const TEXT_WIDTH_DATE = width * 0.25;
 
+	useFocusEffect(
+		React.useCallback(() => {
+			getPlanData();
+		}, [])
+	);
+
+	let nowAm = 'AM';
+	let nowHour = 0;
+	if (nowHourInfull === 0 || nowHourInfull === 24) {
+		nowHour = 12;
+	} else if (nowHourInfull === 12) {
+		nowHour = 12;
+		nowAm = 'PM';
+	} else if (nowHourInfull > 12) {
+		nowHour = nowHourInfull - 12;
+		nowAm = 'PM';
+	} else {
+		nowHour = nowHourInfull;
+	}
+
+	const [ prePlan, setPrePlan ] = useState(null);
+	const getPlanData = async () => {
+		try {
+			const value = await AsyncStorage.getItem(numSavedPlan_Key);
+			console.log(value);
+			if (value !== null) {
+				setPrePlan(JSON.parse(value));
+			} else {
+				setPrePlan(null);
+			}
+		} catch (e) {
+			Alert.alert('plan data read error', 'error code : 001');
+		}
+	};
+
+	const storePlanData = async () => {
+		try {
+			const rename = name === null ? '오늘의 뽀모도로' : name;
+			let value = null;
+			if (prePlan === null) {
+				value = [
+					{
+						name: rename,
+						isAM: isAM,
+						hour: hour,
+						min: min,
+						date: date,
+						number: number,
+						work: work,
+						nowork: nowork,
+						isSound: isSound,
+						isVibration: isVibration
+					}
+				];
+			} else {
+				value = [
+					{
+						name: rename,
+						isAM: isAM,
+						hour: hour,
+						min: min,
+						date: date,
+						number: number,
+						work: work,
+						nowork: nowork,
+						isSound: isSound,
+						isVibration: isVibration
+					},
+					...prePlan
+				];
+			}
+			const jsonValue = JSON.stringify(value);
+			await AsyncStorage.setItem(numSavedPlan_Key, jsonValue);
+		} catch (e) {
+			Alert.alert('plan data store error', 'error code : 002');
+		}
+		navigation.navigate('MyPage');
+	};
+
 	// const onPress = React.useCallback(() => {
 	// 	Alert.alert(number + ' ' + work + ' ' + nowork);
 	// });
 	// console.log(nowHourInfull);
 	// console.log(nowMin);
-	// console.log(name);
+	// console.log(date);
 
 	return (
 		<SafeAreaView>
-			<ScrollView>
+			<ScrollView nestedScrollEnabled={true} ref={ref}>
 				<TextInput
 					style={styles.nameInput}
-					onChangeText={(text) => setName(text)}
-					value={number}
+					onChangeText={(name) => setName(name)}
+					value={name}
 					placeholder="프로젝트 제목"
 					keyboardType="default"
 				/>
@@ -126,25 +191,25 @@ export default function PlanSetup({ navigation }) {
 					/>
 				</View>
 				<View style={styles.dayScreen}>
-					<TouchableOpacity style={isMon ? styles.dayButtonOn : styles.dayButtonOff} onPress={onPressMon}>
+					<TouchableOpacity style={date[0] ? styles.dayButtonOn : styles.dayButtonOff} onPress={onPressMon}>
 						<Text>월</Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={isTue ? styles.dayButtonOn : styles.dayButtonOff} onPress={onPressTue}>
+					<TouchableOpacity style={date[1] ? styles.dayButtonOn : styles.dayButtonOff} onPress={onPressTue}>
 						<Text>화</Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={isWed ? styles.dayButtonOn : styles.dayButtonOff} onPress={onPressWed}>
+					<TouchableOpacity style={date[2] ? styles.dayButtonOn : styles.dayButtonOff} onPress={onPressWed}>
 						<Text>수</Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={isThu ? styles.dayButtonOn : styles.dayButtonOff} onPress={onPressThu}>
+					<TouchableOpacity style={date[3] ? styles.dayButtonOn : styles.dayButtonOff} onPress={onPressThu}>
 						<Text>목</Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={isFri ? styles.dayButtonOn : styles.dayButtonOff} onPress={onPressFri}>
+					<TouchableOpacity style={date[4] ? styles.dayButtonOn : styles.dayButtonOff} onPress={onPressFri}>
 						<Text>금</Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={isSat ? styles.dayButtonOn : styles.dayButtonOff} onPress={onPressSat}>
+					<TouchableOpacity style={date[5] ? styles.dayButtonOn : styles.dayButtonOff} onPress={onPressSat}>
 						<Text>토</Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={isSun ? styles.dayButtonOn : styles.dayButtonOff} onPress={onPressSun}>
+					<TouchableOpacity style={date[6] ? styles.dayButtonOn : styles.dayButtonOff} onPress={onPressSun}>
 						<Text>일</Text>
 					</TouchableOpacity>
 				</View>
@@ -213,12 +278,7 @@ export default function PlanSetup({ navigation }) {
 				<View style={styles.buttonScreen}>
 					<Button
 						style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
-						onPress={() =>
-							navigation.navigate('TimerCycle', {
-								number: number,
-								work: work,
-								nowork: nowork
-							})}
+						onPress={storePlanData}
 						title="저장하기"
 					/>
 				</View>
