@@ -32,7 +32,7 @@ export default function MypageSummary() {
 	const getPlanData = async () => {
 		try {
 			const value = await AsyncStorage.getItem(savedPlan_Key);
-			console.log(value);
+			// console.log(value);
 			if (value !== null) {
 				setSavedPlan(JSON.parse(value));
 			}
@@ -50,13 +50,30 @@ export default function MypageSummary() {
 		}
 	};
 
-	const Item = ({ title }) => (
-		<View style={styles.item}>
-			<Text style={styles.title}>{title}</Text>
-		</View>
+	const onPressPlan = () => {};
+
+	const renderItem = ({ item }) => (
+		<TouchableOpacity style={styles.item} onPress={onPressPlan}>
+			<Text style={styles.title}>{item.name}</Text>
+			<Text style={styles.text}>
+				{'매주 '}
+				{item.date[0] ? '월 ' : ''}
+				{item.date[1] ? '화 ' : ''}
+				{item.date[2] ? '수 ' : ''}
+				{item.date[3] ? '목 ' : ''}
+				{item.date[4] ? '금 ' : ''}
+				{item.date[5] ? '토 ' : ''}
+				{item.date[6] ? '일 ' : ''}
+				{item.isAM} {item.hour} : {item.min}
+			</Text>
+			<Text style={styles.text}>
+				{item.work}분 {item.nowork}분 {item.number}회 {item.isSound ? '소리 알람' : ''} {item.isVibration ? '진동 알람' : ''}
+				{item.isVibration || item.isSound ? '' : '알람 없음'}
+			</Text>
+		</TouchableOpacity>
 	);
 
-	const renderItem = ({ item }) => <Item title={item.name} />;
+	// console.log(savedPlan);
 
 	return savedPlan === null ? (
 		<Text
@@ -67,12 +84,11 @@ export default function MypageSummary() {
 				fontSize: 20
 			}}
 		>
-			null
+			예약된 알람이 없습니다.
 		</Text>
 	) : (
 		<View style={{ flex: 1 }}>
 			<FlatList data={savedPlan} renderItem={renderItem} />
-			<Text>{savedPlan.length}</Text>
 			<Button style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }} onPress={clear} title="clear" />
 		</View>
 	);
@@ -85,9 +101,14 @@ const styles = StyleSheet.create({
 	item: {
 		padding: 20,
 		marginVertical: 8,
-		marginHorizontal: 16
+		marginHorizontal: 16,
+		backgroundColor: 'gray',
+		marginBottom: 10
 	},
 	title: {
-		fontSize: 32
+		fontSize: 20
+	},
+	text: {
+		fontSize: 15
 	}
 });

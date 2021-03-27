@@ -27,20 +27,25 @@ for (let step = 0; step < 60; step++) {
 
 export default function PlanSetup({ navigation }) {
 	//scroll to top
-	const ref = useRef(null);
+	const ref = React.useRef(null);
 	useScrollToTop(ref);
-	//scroll to top end
+	//scroll to top end 위로 올라가는거 안됨
 
-	const nowHourInfull = new Date().getHours();
-	const nowMin = new Date().getMinutes();
+	useFocusEffect(
+		React.useCallback(() => {
+			getPlanData();
+			getTimeData();
+			setName(null);
+		}, [])
+	);
 
 	const [ name, setName ] = useState(null);
 	const isAMs = [ 'AM', 'PM' ];
-	const [ isAM, setIsam ] = useState(nowAm);
+	const [ isAM, setIsam ] = useState('AM');
 	const hours = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ];
-	const [ hour, setHour ] = useState(nowHour);
+	const [ hour, setHour ] = useState(1);
 	const mins = minsMaker;
-	const [ min, setMin ] = useState(nowMin);
+	const [ min, setMin ] = useState(0);
 
 	const [ date, setDate ] = useState([ false, false, false, false, false, false, false ]);
 	const onPressMon = () => setDate((date) => [ !date[0], date[1], date[2], date[3], date[4], date[5], date[6] ]);
@@ -58,39 +63,19 @@ export default function PlanSetup({ navigation }) {
 	const noworks = [ 3, 5, 10, 15, 20 ];
 	const [ nowork, setNowork ] = useState(5);
 
-	const [ isSound, setisSound ] = useState(false);
+	const [ isSound, setisSound ] = useState(true);
 	const toggleSwitchSound = () => setisSound((previousState) => !previousState);
-	const [ isVibration, setisVibration ] = useState(false);
+	const [ isVibration, setisVibration ] = useState(true);
 	const toggleSwitchVib = () => setisVibration((previousState) => !previousState);
 
 	const TEXT_WIDTH = width * 0.4;
 	const TEXT_WIDTH_DATE = width * 0.25;
 
-	useFocusEffect(
-		React.useCallback(() => {
-			getPlanData();
-		}, [])
-	);
-
-	let nowAm = 'AM';
-	let nowHour = 0;
-	if (nowHourInfull === 0 || nowHourInfull === 24) {
-		nowHour = 12;
-	} else if (nowHourInfull === 12) {
-		nowHour = 12;
-		nowAm = 'PM';
-	} else if (nowHourInfull > 12) {
-		nowHour = nowHourInfull - 12;
-		nowAm = 'PM';
-	} else {
-		nowHour = nowHourInfull;
-	}
-
 	const [ prePlan, setPrePlan ] = useState(null);
 	const getPlanData = async () => {
 		try {
 			const value = await AsyncStorage.getItem(numSavedPlan_Key);
-			console.log(value);
+			// console.log(value);
 			if (value !== null) {
 				setPrePlan(JSON.parse(value));
 			} else {
@@ -101,48 +86,78 @@ export default function PlanSetup({ navigation }) {
 		}
 	};
 
-	const storePlanData = async () => {
-		try {
-			const rename = name === null ? '오늘의 뽀모도로' : name;
-			let value = null;
-			if (prePlan === null) {
-				value = [
-					{
-						name: rename,
-						isAM: isAM,
-						hour: hour,
-						min: min,
-						date: date,
-						number: number,
-						work: work,
-						nowork: nowork,
-						isSound: isSound,
-						isVibration: isVibration
-					}
-				];
-			} else {
-				value = [
-					{
-						name: rename,
-						isAM: isAM,
-						hour: hour,
-						min: min,
-						date: date,
-						number: number,
-						work: work,
-						nowork: nowork,
-						isSound: isSound,
-						isVibration: isVibration
-					},
-					...prePlan
-				];
-			}
-			const jsonValue = JSON.stringify(value);
-			await AsyncStorage.setItem(numSavedPlan_Key, jsonValue);
-		} catch (e) {
-			Alert.alert('plan data store error', 'error code : 002');
+	const getTimeData = () => {
+		const nowHourInfull = new Date().getHours();
+		const nowMin = new Date().getMinutes();
+
+		let nowAm = 'AM';
+		let nowHour = 0;
+
+		if (nowHourInfull === 0 || nowHourInfull === 24) {
+			nowHour = 12;
+		} else if (nowHourInfull === 12) {
+			nowHour = 12;
+			nowAm = 'PM';
+		} else if (nowHourInfull > 12) {
+			nowHour = nowHourInfull - 12;
+			nowAm = 'PM';
+		} else {
+			nowHour = nowHourInfull;
 		}
-		navigation.navigate('MyPage');
+
+		setIsam(nowAm);
+		setHour(nowHour);
+		setMin(nowMin);
+
+		//wheel 안바뀌는거 고치기
+	};
+
+	const storePlanData = async () => {
+		if (date[0] || date[1] || date[2] || date[3] || date[4] || date[5] || date[6]) {
+			try {
+				const rename = name === null ? '오늘의 뽀모도로' : name;
+				let value = null;
+				if (prePlan === null) {
+					value = [
+						{
+							name: rename,
+							isAM: isAM,
+							hour: hour,
+							min: min,
+							date: date,
+							number: number,
+							work: work,
+							nowork: nowork,
+							isSound: isSound,
+							isVibration: isVibration
+						}
+					];
+				} else {
+					value = [
+						{
+							name: rename,
+							isAM: isAM,
+							hour: hour,
+							min: min,
+							date: date,
+							number: number,
+							work: work,
+							nowork: nowork,
+							isSound: isSound,
+							isVibration: isVibration
+						},
+						...prePlan
+					];
+				}
+				const jsonValue = JSON.stringify(value);
+				await AsyncStorage.setItem(numSavedPlan_Key, jsonValue);
+			} catch (e) {
+				Alert.alert('plan data store error', 'error code : 002');
+			}
+			navigation.navigate('MyPage');
+		} else {
+			Alert.alert('요일을 선택해주세요', '하나 이상은 필수입니다.');
+		}
 	};
 
 	// const onPress = React.useCallback(() => {
@@ -167,7 +182,7 @@ export default function PlanSetup({ navigation }) {
 						style={styles.timerWheel}
 						items={isAMs}
 						onChange={setIsam}
-						selected={nowAm === 'AM' ? 0 : 1}
+						selected={isAM === 'AM' ? 0 : 1}
 						contentStyle={itemStyle}
 						textWidth={TEXT_WIDTH_DATE}
 					/>
@@ -176,7 +191,7 @@ export default function PlanSetup({ navigation }) {
 						style={styles.timerWheel}
 						items={hours}
 						onChange={setHour}
-						selected={nowHour - 1}
+						selected={hour - 1}
 						contentStyle={itemStyle}
 						textWidth={TEXT_WIDTH_DATE}
 					/>
@@ -185,7 +200,7 @@ export default function PlanSetup({ navigation }) {
 						style={styles.timerWheel}
 						items={mins}
 						onChange={setMin}
-						selected={nowMin}
+						selected={min}
 						contentStyle={itemStyle}
 						textWidth={TEXT_WIDTH_DATE}
 					/>
